@@ -1,0 +1,19 @@
+[package]
+name = "rusty-eushully"
+description = "Utils to hack Eushully games"
+repository = "https://github.com/DoumanAsh/rusty-eushully"
+license = "MIT"
+version = "0.1.0"
+authors = ["Douman <douman@gmx.se>"]
+
+[profile.release]
+lto = true
+
+[dependencies]
+winapi = "^0.2.7"
+windows-win = "^0.7.0"
+lazy-bytes-cast = "^0.1.0"
+
+[[bin]]
+path = "src/nocd.rs"
+name = "eushully_nocd"
