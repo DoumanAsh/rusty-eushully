@@ -1,4 +1,7 @@
 extern crate windows_win;
+extern crate unicode_width;
+
+use unicode_width::UnicodeWidthStr;
 
 use windows_win::*;
 
@@ -27,7 +30,8 @@ fn get_patches() -> Vec<(String, u32, String, String)> {
         let config = std::io::BufReader::new(config);
         result = vec![];
 
-        for line in config.lines().map(|line_res| line_res.unwrap()) {
+        const COMM: &'static[char] = &['/', '#'];
+        for line in config.lines().map(|line_res| line_res.unwrap()).filter(|line| !line.trim_left().starts_with(COMM)) {
             let elements = line.split(",").map(|elem| elem.trim()).collect::<Vec<&str>>();
 
             if elements.len() != 4 {
@@ -44,6 +48,9 @@ fn get_patches() -> Vec<(String, u32, String, String)> {
 
             if let Ok(base_addr) = u32::from_str_radix(base_addr, 16) {
                 result.push((elements[0].to_string(), base_addr, elements[2].to_string(), elements[3].to_string()));
+            }
+            else {
+                println!(">>>Bad address({}) for a game {}", base_addr, elements[0]);
             }
         }
 
@@ -65,16 +72,43 @@ fn get_patches() -> Vec<(String, u32, String, String)> {
     result
 }
 
+#[inline]
+fn get_padding(data: &str, max_width: usize) -> usize {
+    max_width - (data.len() - UnicodeWidthStr::width(data))
+}
+
+fn print_patches(data: &Vec<(String, u32, String, String)>) {
+    let name_wid = data.iter().map(|elem| UnicodeWidthStr::width(elem.0.as_str())).max().unwrap() + 1;
+    const BASE_WID: usize = 13;
+    let patch_wid = data.iter().map(|elem| elem.2.len()).max().unwrap() + 1;
+    let orig_wid = data.iter().map(|elem| elem.3.len()).max().unwrap() + 1;
+    let table_wid = name_wid + BASE_WID + patch_wid + orig_wid + 8;
+
+    //Header
+    println!("{0:-^1$}", "", table_wid);
+    println!("| {0:1$}| Base address | {2:3$}| {4:5$}|",
+             "Game", get_padding("Game", name_wid),
+             "Patch", patch_wid,
+             "Original data", orig_wid);
+    println!("{0:-^1$}", "", table_wid);
+
+    for &(ref name, ref base_addr, ref patch, ref orig_data) in data.iter() {
+        println!("| {0:1$}| {2: ^3$}| {4:5$}| {6:7$}|",
+                 name, get_padding(&name, name_wid),
+                 format!("0x{0:X}", base_addr), BASE_WID,
+                 patch, patch_wid,
+                 orig_data, orig_wid);
+        println!("{0:-^1$}", "", table_wid);
+    }
+}
+
 fn main() {
     println!("=============================");
     println!("      Eushully NoCD");
     println!("=============================");
     let games = get_patches();
-    println!("Available {} patches", games.len());
-    for &(ref name, ref base_addr, ref patch, ref orig_data) in games.iter() {
-        println!("Patch:\n{} | 0x{:x} | {} | {}", name, base_addr, patch, orig_data);
-        println!("-------------------------");
-    }
+    println!("Available {} patches:", games.len());
+    print_patches(&games);
 
     println!("\nSTART PATCHING:");
     let running_games = get_windows_by_class(GAME_ENGINE, None).expect("Failed to look-up any games");

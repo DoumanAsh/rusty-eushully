@@ -13,6 +13,7 @@ lto = true
 winapi = "^0.2.7"
 windows-win = "^0.7.0"
 lazy-bytes-cast = "^0.1.0"
+unicode-width = "^0.1.3"
 
 [[bin]]
 path = "src/nocd.rs"
