@@ -1,8 +1,11 @@
 
 environment:
+  git_token:
+    secure: H5PQSeh6rHOoDLktlYlVLYu/iJMTwzzNVk8Wr//nqbYC7xrJuGDwKwiev/0Bl2d3
   global:
     NEW_TAG: "none"
     PROJECT_NAME: eushully
+    MAIL: "douman@gmx.se"
   matrix:
     # Stable channel only?
     - TARGET: i686-pc-windows-gnu
@@ -48,8 +51,7 @@ deploy:
   description: "Just NoCD"
   # All the zipped artifacts will be deployed
   artifact: /.*\.zip/
-  auth_token:
-    secure: H5PQSeh6rHOoDLktlYlVLYu/iJMTwzzNVk8Wr//nqbYC7xrJuGDwKwiev/0Bl2d3
+  auth_token: "$(git_token)"
   provider: GitHub
   on:
     CHANNEL: stable
