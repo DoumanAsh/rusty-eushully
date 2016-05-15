@@ -1,6 +1,7 @@
 
 environment:
   global:
+    NEW_TAG: "none"
     PROJECT_NAME: eushully
   matrix:
     # Stable channel only?
@@ -8,6 +9,8 @@ environment:
       CHANNEL: stable
     - TARGET: x86_64-pc-windows-gnu
       CHANNEL: stable
+  git_token:
+    secure: H5PQSeh6rHOoDLktlYlVLYu/iJMTwzzNVk8Wr//nqbYC7xrJuGDwKwiev/0Bl2d3
 
 # Install Rust and Cargo
 # (Based on from https://github.com/rust-lang/libc/blob/master/appveyor.yml)
@@ -28,6 +31,7 @@ build: false
 test_script:
   - cargo build
   - cargo run -q
+  - powershell -version 3 -File is_release.ps1
 
 before_deploy:
   # Generate artifacts for release
@@ -37,10 +41,13 @@ before_deploy:
   - copy target\release\eushully_nocd.exe staging\eushully_nocd
   - copy eushully_nocd.cfg staging\eushully_nocd
   - cd staging
-  - 7z a ../eushully_nocd-%APPVEYOR_REPO_TAG_NAME%-%TARGET%.zip eushully_nocd/*
-  - appveyor PushArtifact ../eushully_nocd-%APPVEYOR_REPO_TAG_NAME%-%TARGET%.zip
+  - 7z a ../eushully_nocd-%TARGET%.zip eushully_nocd/*
+  - appveyor PushArtifact ../eushully_nocd-%TARGET%.zip
 
 deploy:
+  # Release should be the same as tag's trigger. Otherwise you'll create new tag
+  tag: "$(APPVEYOR_REPO_TAG_NAME)"
+  release: "$(APPVEYOR_REPO_TAG_NAME)"
   description: "Just NoCD"
   # All the zipped artifacts will be deployed
   artifact: /.*\.zip/
