@@ -28,7 +28,6 @@ build: false
 
 test_script:
   - cargo build
-  - cargo run
   - powershell -version 3 -File is_release.ps1
 
 before_deploy:
