@@ -9,8 +9,6 @@ environment:
       CHANNEL: stable
     - TARGET: x86_64-pc-windows-gnu
       CHANNEL: stable
-  git_token:
-    secure: H5PQSeh6rHOoDLktlYlVLYu/iJMTwzzNVk8Wr//nqbYC7xrJuGDwKwiev/0Bl2d3
 
 # Install Rust and Cargo
 # (Based on from https://github.com/rust-lang/libc/blob/master/appveyor.yml)
@@ -30,7 +28,7 @@ build: false
 
 test_script:
   - cargo build
-  - cargo run -q
+  - cargo run
   - powershell -version 3 -File is_release.ps1
 
 before_deploy:
